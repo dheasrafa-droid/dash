@@ -3,61 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSRT Studio CapCut-Style Modern</title>
+<title>DSRT Studio Full Version</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 body { margin:0; font-family:sans-serif; background:#111; color:white; overflow:hidden; }
 header { display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:#1a1a1a; box-shadow:0 2px 8px rgba(0,0,0,0.5);}
 button,input,select { transition: all 0.3s; cursor:pointer; }
 button:hover,input:hover,select:hover { transform: scale(1.05); }
-#canvasContainer { position:relative; width:100%; height:60vh; margin-top:10px; background:linear-gradient(135deg,#222,#111); border-radius:12px; overflow:hidden; }
+#canvasContainer { position:relative; width:100%; height:50vh; margin-top:10px; background:linear-gradient(135deg,#222,#111); border-radius:12px; overflow:hidden; }
 canvas { width:100%; height:100%; display:block; }
-.layer { position:absolute; pointer-events:none; }
-.timelineContainer { height:120px; background:#1c1c1c; margin-top:10px; padding:10px; border-radius:12px; display:flex; flex-direction:column; }
-.timeline { flex:1; overflow-x:auto; white-space:nowrap; position:relative; border-radius:8px; background:#222; }
-.marker { display:inline-block; width:2px; height:100%; background:red; position:absolute; }
+.layer { position:absolute; border:1px dashed #0ea5e9; cursor:move; }
 .lyric { position:absolute; color:#0ff; font-size:24px; font-weight:bold; text-shadow:1px 1px 5px black; pointer-events:none; }
-.sidebar { position:absolute; top:10px; right:10px; width:220px; max-height:80%; overflow-y:auto; background:#1a1a1a; border-radius:12px; padding:10px; }
+.sidebar { position:absolute; top:10px; right:10px; width:280px; max-height:80%; overflow-y:auto; background:#1a1a1a; border-radius:12px; padding:10px; transition: all 0.3s; z-index:1000; }
 .effectCard { width:90px; height:90px; margin:5px; background:#333; border-radius:12px; display:flex; justify-content:center; align-items:center; text-align:center; font-size:12px; cursor:pointer; transition:0.3s; }
 .effectCard:hover { background:#555; transform:scale(1.05); }
-.controlPanel { position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:10px; }
+.tabButton { padding:6px 12px; margin:2px; border-radius:8px; background:#333; }
+.tabButton.active { background:#0ea5e9; }
+.controlPanel { position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:10px; flex-wrap: wrap; }
 .controlPanel button { padding:8px 12px; border-radius:8px; background:#333; }
-.controlPanel button:hover { background:#555; }
+.timelineContainer { height:120px; background:#1c1c1c; margin-top:10px; padding:10px; border-radius:12px; display:flex; flex-direction:column; overflow-x:auto; }
+.timeline { flex:1; position:relative; white-space:nowrap; }
+.layerBlock { display:inline-block; width:100px; height:40px; margin:2px; background:#444; border-radius:6px; position:relative; }
+#sidebarToggle { position:absolute; top:10px; left:10px; background:#0ea5e9; border:none; padding:8px; border-radius:8px; cursor:pointer; z-index:1001; }
+@media (max-width:768px){ .sidebar { width:180px; } }
 </style>
 </head>
 <body>
 
 <header>
-  <h1 class="text-xl font-bold">DSRT Studio Modern</h1>
+  <h1 class="text-xl font-bold">DSRT Studio</h1>
   <div class="flex gap-2">
-    <button onclick="undo()">Undo</button>
-    <button onclick="redo()">Redo</button>
+    <button onclick="switchCategory('manual')">Manual Edit</button>
+    <button onclick="switchCategory('video')">Video / Canvas</button>
   </div>
 </header>
+
+<button id="sidebarToggle" onclick="toggleSidebar()">☰ Tools</button>
 
 <div id="canvasContainer">
   <canvas id="canvas"></canvas>
   <div id="layerContainer"></div>
   <div id="lyricContainer"></div>
-  <div class="sidebar" id="effectPanel">
-    <div class="effectCard" onclick="applyTemplate('jedag')">Jedag-Jedug</div>
-    <div class="effectCard" onclick="applyTemplate('lyric')">Lyric</div>
-    <div class="effectCard" onclick="applyTemplate('glitch')">Glitch</div>
-    <div class="effectCard" onclick="applyTemplate('shake')">Shake</div>
-    <div class="effectCard" onclick="applyTemplate('glow')">Glow</div>
-    <div class="effectCard" onclick="applyTemplate('particle')">Particle</div>
-    <input type="file" id="uploadImage" accept="image/*" class="mt-2 bg-gray-700 p-2 rounded w-full"/>
-    <input type="file" id="uploadAudio" accept="audio/*" class="mt-2 bg-gray-700 p-2 rounded w-full"/>
-    <select id="resolutionSelect" class="mt-2 bg-gray-700 p-2 rounded w-full">
-      <option value="640x360">360p</option>
-      <option value="1280x720">720p</option>
-      <option value="1920x1080">1080p</option>
-    </select>
-    <button id="downloadBtn" class="mt-2 w-full bg-purple-600 p-2 rounded">Download Video</button>
+
+  <div class="sidebar" id="sidebar">
+
+    <!-- MANUAL EDIT -->
+    <div id="manualCategory">
+      <h3 class="font-bold mb-1">DSRT Manual Tools</h3>
+      <input type="file" id="uploadManualImage" accept="image/*" class="bg-gray-700 p-2 rounded w-full mb-2"/>
+      <button onclick="applyManual('Saturation')">Saturation</button>
+      <button onclick="applyManual('Hue')">Hue</button>
+      <button onclick="applyManual('Brightness')">Brightness</button>
+      <button onclick="applyManual('Sharpness')">Sharpness</button>
+      <button onclick="applyManual('Noise Reduction')">Noise Reduction</button>
+      <button onclick="applyManual('Texture')">Texture</button>
+      <button id="downloadManualBtn" class="w-full bg-purple-600 p-2 rounded mt-2">Download Image</button>
+    </div>
+
+    <!-- VIDEO / CANVAS -->
+    <div id="videoCategory" class="hidden">
+      <h3 class="font-bold mb-1">Video / Canvas Tools</h3>
+
+      <input type="file" id="uploadVideoImage" accept="image/*,video/*" class="bg-gray-700 p-2 rounded w-full mb-2"/>
+      <input type="file" id="uploadAudio" accept="audio/*" class="bg-gray-700 p-2 rounded w-full mb-2"/>
+
+      <h4 class="font-semibold mt-2">Effects / Templates</h4>
+      <div class="flex flex-wrap">
+        <div class="effectCard" onclick="applyTemplate('jedag')">Jedag-Jedug</div>
+        <div class="effectCard" onclick="applyTemplate('lyric')">Lyric</div>
+        <div class="effectCard" onclick="applyTemplate('glitch')">Glitch</div>
+        <div class="effectCard" onclick="applyTemplate('shake')">Shake</div>
+        <div class="effectCard" onclick="applyTemplate('glow')">Glow</div>
+        <div class="effectCard" onclick="applyTemplate('particle')">Particle</div>
+      </div>
+
+      <select id="resolutionSelect" class="bg-gray-700 p-2 rounded w-full mb-2 mt-2">
+        <option value="640x360">360p</option>
+        <option value="1280x720">720p</option>
+        <option value="1920x1080">1080p</option>
+      </select>
+      <button id="downloadVideoBtn" class="w-full bg-purple-600 p-2 rounded">Download Video</button>
+    </div>
+
   </div>
 </div>
 
-<div class="timelineContainer">
+<div class="timelineContainer" id="timelineContainer">
   <div class="timeline" id="timeline"></div>
 </div>
 
@@ -65,34 +96,71 @@ canvas { width:100%; height:100%; display:block; }
   <button id="playBtn">Play</button>
   <button id="pauseBtn">Pause</button>
   <button id="stopBtn">Stop</button>
+  <button onclick="undoLayer()">Undo</button>
+  <button onclick="redoLayer()">Redo</button>
 </div>
 
 <script>
+// Sidebar toggle
+function toggleSidebar(){ const sb=document.getElementById('sidebar'); sb.style.display=(sb.style.display==='none')?'block':'block'; }
+
+// Category switch
+function switchCategory(cat){
+  if(cat==='manual'){ document.getElementById('manualCategory').classList.remove('hidden'); document.getElementById('videoCategory').classList.add('hidden'); }
+  else{ document.getElementById('manualCategory').classList.add('hidden'); document.getElementById('videoCategory').classList.remove('hidden'); }
+}
+
 // Canvas setup
 const canvas=document.getElementById('canvas'), ctx=canvas.getContext('2d');
-let img=new Image();
-let originalData=null;
+canvas.width=1280; canvas.height=720;
 const layerContainer=document.getElementById('layerContainer');
 const lyricContainer=document.getElementById('lyricContainer');
 
-document.getElementById('uploadImage').addEventListener('change', e=>{
-  const file=e.target.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=ev=>{ img.src=ev.target.result; }
-  reader.readAsDataURL(file);
-});
-img.onload=function(){
-  canvas.width=img.width; canvas.height=img.height;
-  ctx.drawImage(img,0,0);
-  originalData=ctx.getImageData(0,0,canvas.width,canvas.height);
-  saveHistory();
+let layers=[], undoStack=[], redoStack=[], selectedLayer=null;
+
+// Create layer
+function createLayer(type, src){
+  const div=document.createElement('div'); div.className='layer'; div.style.width='200px'; div.style.height='150px';
+  div.dataset.type=type;
+  if(type==='image' || type==='video'){
+    const media=document.createElement(type==='image'?'img':'video');
+    media.src=src; media.style.width='100%'; media.style.height='100%'; media.autoplay=type==='video'; media.loop=true; div.appendChild(media);
+  }
+  if(type==='text'){ div.innerText='Text'; div.style.fontSize='24px'; div.style.color='white'; div.style.textAlign='center'; }
+  layerContainer.appendChild(div);
+  makeDraggable(div);
+  layers.push(div);
+  addTimelineBlock(div);
+  saveState();
 }
 
-// Undo/Redo
-let history=[], historyIndex=-1;
-function saveHistory(){ history=history.slice(0,historyIndex+1); history.push(ctx.getImageData(0,0,canvas.width,canvas.height)); historyIndex++; }
-function undo(){ if(historyIndex>0){ historyIndex--; ctx.putImageData(history[historyIndex],0,0); }}
-function redo(){ if(historyIndex<history.length-1){ historyIndex++; ctx.putImageData(history[historyIndex],0,0); }}
+// Draggable & resize
+function makeDraggable(el){
+  let offsetX=0, offsetY=0, isDown=false;
+  el.addEventListener('mousedown', e=>{ isDown=true; offsetX=e.offsetX; offsetY=e.offsetY; selectedLayer=el; });
+  document.addEventListener('mousemove', e=>{ if(!isDown) return; el.style.left=(e.clientX-offsetX)+'px'; el.style.top=(e.clientY-offsetY)+'px'; });
+  document.addEventListener('mouseup', e=>{ isDown=false; saveState(); });
+}
+
+// Timeline
+const timeline=document.getElementById('timeline');
+function addTimelineBlock(layer){
+  const block=document.createElement('div'); block.className='layerBlock'; block.innerText=layer.dataset.type; timeline.appendChild(block);
+}
+
+// Upload events
+document.getElementById('uploadManualImage').addEventListener('change', e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{ createLayer('image', ev.target.result); }
+  reader.readAsDataURL(file);
+});
+document.getElementById('uploadVideoImage').addEventListener('change', e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{ createLayer(file.type.includes('video')?'video':'image', ev.target.result); }
+  reader.readAsDataURL(file);
+});
 
 // Audio
 let audio=new Audio();
@@ -101,41 +169,22 @@ document.getElementById('uploadAudio').addEventListener('change', e=>{
   audio.src=URL.createObjectURL(file);
 });
 
-// Templates & Effects
-let lyrics=[{time:1,text:"DSRT Studio"},{time:3,text:"Ultimate Pro"},{time:5,text:"CapCut Modern"}];
-let effectInterval=null;
-function applyTemplate(name){
-  if(!audio.paused){ clearInterval(effectInterval); }
-  effectInterval=setInterval(()=>{
-    const t=Math.floor(audio.currentTime);
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(img,0,0);
-    if(name==='jedag'){ ctx.globalAlpha=0.5+Math.random()*0.5; }
-    if(name==='glitch'){ ctx.drawImage(img,Math.random()*10-5,Math.random()*10-5); }
-    if(name==='shake'){ canvas.style.transform='translate('+(Math.random()*10-5)+'px,'+(Math.random()*10-5)+'px)'; }
-    if(name==='glow'){ canvas.style.boxShadow='0 0 '+(Math.random()*20)+'px #0ff'; }
-    if(name==='lyric'){ lyricContainer.innerHTML=''; lyrics.forEach(l=>{
-      if(t>=l.time && t<l.time+2){
-        const div=document.createElement('div');
-        div.className='lyric';
-        div.style.top=(50+Math.random()*100)+'px';
-        div.style.left=(50+Math.random()*400)+'px';
-        div.innerText=l.text;
-        lyricContainer.appendChild(div);
-      }
-    })}
-  },50);
-}
-
 // Controls
 document.getElementById('playBtn').addEventListener('click', ()=>{ audio.play(); });
 document.getElementById('pauseBtn').addEventListener('click', ()=>{ audio.pause(); });
-document.getElementById('stopBtn').addEventListener('click', ()=>{
-  audio.pause(); audio.currentTime=0; canvas.style.transform=''; canvas.style.boxShadow=''; lyricContainer.innerHTML=''; clearInterval(effectInterval);
-});
+document.getElementById('stopBtn').addEventListener('click', ()=>{ audio.pause(); audio.currentTime=0; });
 
-// Download Video (5 detik demo)
-document.getElementById('downloadBtn').addEventListener('click', ()=>{
+// Manual tools
+function applyManual(type){ alert('Manual tool: '+type); }
+
+// Video effects per layer
+function applyTemplate(name){ alert('Apply effect: '+name); }
+
+// Download
+document.getElementById('downloadManualBtn').addEventListener('click', ()=>{
+  const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='dsrt_manual.png'; a.click();
+});
+document.getElementById('downloadVideoBtn').addEventListener('click', ()=>{
   const stream=canvas.captureStream(30);
   const recorder=new MediaRecorder(stream);
   let chunks=[];
@@ -143,12 +192,17 @@ document.getElementById('downloadBtn').addEventListener('click', ()=>{
   recorder.onstop=e=>{
     const blob=new Blob(chunks,{type:'video/webm'});
     const url=URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download='dsrt_modern.webm'; a.click();
+    const a=document.createElement('a'); a.href=url; a.download='dsrt_video.webm'; a.click();
     URL.revokeObjectURL(url);
   };
   recorder.start();
-  setTimeout(()=>{ recorder.stop(); },5000);
+  setTimeout(()=>{ recorder.stop(); },10000);
 });
+
+// Undo / Redo
+function saveState(){ undoStack.push(layerContainer.innerHTML); if(undoStack.length>20) undoStack.shift(); }
+function undoLayer(){ if(undoStack.length>0){ redoStack.push(layerContainer.innerHTML); layerContainer.innerHTML=undoStack.pop(); } }
+function redoLayer(){ if(redoStack.length>0){ undoStack.push(layerContainer.innerHTML); layerContainer.innerHTML=redoStack.pop(); } }
 </script>
 
 </body>
