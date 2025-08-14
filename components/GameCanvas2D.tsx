@@ -5,9 +5,7 @@ export default function GameCanvas2D({ graphics }: { graphics: 'high' | 'medium'
   const gameRef = useRef<Phaser.Game>();
 
   useEffect(() => {
-    if (gameRef.current) {
-      gameRef.current.destroy(true);
-    }
+    if (gameRef.current) gameRef.current.destroy(true);
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
