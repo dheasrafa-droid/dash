@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSRT Studio Full Version</title>
+<title>DSRT Studio CapCut Full Responsive</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 body { margin:0; font-family:sans-serif; background:#111; color:white; overflow:hidden; }
@@ -12,8 +12,8 @@ button,input,select { transition: all 0.3s; cursor:pointer; }
 button:hover,input:hover,select:hover { transform: scale(1.05); }
 #canvasContainer { position:relative; width:100%; height:50vh; margin-top:10px; background:linear-gradient(135deg,#222,#111); border-radius:12px; overflow:hidden; }
 canvas { width:100%; height:100%; display:block; }
-.layer { position:absolute; border:1px dashed #0ea5e9; cursor:move; }
-.lyric { position:absolute; color:#0ff; font-size:24px; font-weight:bold; text-shadow:1px 1px 5px black; pointer-events:none; }
+.layer { position:absolute; border:1px solid #0ea5e9; border-radius:6px; cursor:move; transition:0.2s; }
+.layer.selected { box-shadow:0 0 10px #0ea5e9; border:2px solid #0ff; }
 .sidebar { position:absolute; top:10px; right:10px; width:280px; max-height:80%; overflow-y:auto; background:#1a1a1a; border-radius:12px; padding:10px; transition: all 0.3s; z-index:1000; }
 .effectCard { width:90px; height:90px; margin:5px; background:#333; border-radius:12px; display:flex; justify-content:center; align-items:center; text-align:center; font-size:12px; cursor:pointer; transition:0.3s; }
 .effectCard:hover { background:#555; transform:scale(1.05); }
@@ -22,8 +22,9 @@ canvas { width:100%; height:100%; display:block; }
 .controlPanel { position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:10px; flex-wrap: wrap; }
 .controlPanel button { padding:8px 12px; border-radius:8px; background:#333; }
 .timelineContainer { height:120px; background:#1c1c1c; margin-top:10px; padding:10px; border-radius:12px; display:flex; flex-direction:column; overflow-x:auto; }
-.timeline { flex:1; position:relative; white-space:nowrap; }
-.layerBlock { display:inline-block; width:100px; height:40px; margin:2px; background:#444; border-radius:6px; position:relative; }
+.timeline { flex:1; position:relative; white-space:nowrap; display:flex; align-items:center; }
+.layerBlock { display:inline-block; width:100px; height:40px; margin:2px; background:#444; border-radius:6px; position:relative; text-align:center; line-height:40px; font-size:12px; cursor:pointer; transition:0.2s; }
+.layerBlock.selected { background:#0ea5e9; }
 #sidebarToggle { position:absolute; top:10px; left:10px; background:#0ea5e9; border:none; padding:8px; border-radius:8px; cursor:pointer; z-index:1001; }
 @media (max-width:768px){ .sidebar { width:180px; } }
 </style>
@@ -43,13 +44,11 @@ canvas { width:100%; height:100%; display:block; }
 <div id="canvasContainer">
   <canvas id="canvas"></canvas>
   <div id="layerContainer"></div>
-  <div id="lyricContainer"></div>
 
   <div class="sidebar" id="sidebar">
 
-    <!-- MANUAL EDIT -->
     <div id="manualCategory">
-      <h3 class="font-bold mb-1">DSRT Manual Tools</h3>
+      <h3 class="font-bold mb-1">Manual Tools</h3>
       <input type="file" id="uploadManualImage" accept="image/*" class="bg-gray-700 p-2 rounded w-full mb-2"/>
       <button onclick="applyManual('Saturation')">Saturation</button>
       <button onclick="applyManual('Hue')">Hue</button>
@@ -60,10 +59,8 @@ canvas { width:100%; height:100%; display:block; }
       <button id="downloadManualBtn" class="w-full bg-purple-600 p-2 rounded mt-2">Download Image</button>
     </div>
 
-    <!-- VIDEO / CANVAS -->
     <div id="videoCategory" class="hidden">
-      <h3 class="font-bold mb-1">Video / Canvas Tools</h3>
-
+      <h3 class="font-bold mb-1">Video / Canvas</h3>
       <input type="file" id="uploadVideoImage" accept="image/*,video/*" class="bg-gray-700 p-2 rounded w-full mb-2"/>
       <input type="file" id="uploadAudio" accept="audio/*" class="bg-gray-700 p-2 rounded w-full mb-2"/>
 
@@ -110,19 +107,17 @@ function switchCategory(cat){
   else{ document.getElementById('manualCategory').classList.add('hidden'); document.getElementById('videoCategory').classList.remove('hidden'); }
 }
 
-// Canvas setup
+// Canvas & layers
 const canvas=document.getElementById('canvas'), ctx=canvas.getContext('2d');
 canvas.width=1280; canvas.height=720;
 const layerContainer=document.getElementById('layerContainer');
-const lyricContainer=document.getElementById('lyricContainer');
 
 let layers=[], undoStack=[], redoStack=[], selectedLayer=null;
 
-// Create layer
 function createLayer(type, src){
-  const div=document.createElement('div'); div.className='layer'; div.style.width='200px'; div.style.height='150px';
-  div.dataset.type=type;
-  if(type==='image' || type==='video'){
+  const div=document.createElement('div'); div.className='layer'; div.style.width='200px'; div.style.height='150px'; div.dataset.type=type;
+  div.style.left='50px'; div.style.top='50px';
+  if(type==='image'||type==='video'){
     const media=document.createElement(type==='image'?'img':'video');
     media.src=src; media.style.width='100%'; media.style.height='100%'; media.autoplay=type==='video'; media.loop=true; div.appendChild(media);
   }
@@ -134,12 +129,11 @@ function createLayer(type, src){
   saveState();
 }
 
-// Draggable & resize
 function makeDraggable(el){
   let offsetX=0, offsetY=0, isDown=false;
-  el.addEventListener('mousedown', e=>{ isDown=true; offsetX=e.offsetX; offsetY=e.offsetY; selectedLayer=el; });
+  el.addEventListener('mousedown', e=>{ isDown=true; offsetX=e.offsetX; offsetY=e.offsetY; selectedLayer=el; el.classList.add('selected'); });
   document.addEventListener('mousemove', e=>{ if(!isDown) return; el.style.left=(e.clientX-offsetX)+'px'; el.style.top=(e.clientY-offsetY)+'px'; });
-  document.addEventListener('mouseup', e=>{ isDown=false; saveState(); });
+  document.addEventListener('mouseup', e=>{ if(isDown) el.classList.remove('selected'); isDown=false; saveState(); });
 }
 
 // Timeline
@@ -148,7 +142,7 @@ function addTimelineBlock(layer){
   const block=document.createElement('div'); block.className='layerBlock'; block.innerText=layer.dataset.type; timeline.appendChild(block);
 }
 
-// Upload events
+// Upload
 document.getElementById('uploadManualImage').addEventListener('change', e=>{
   const file=e.target.files[0]; if(!file) return;
   const reader=new FileReader();
@@ -177,8 +171,8 @@ document.getElementById('stopBtn').addEventListener('click', ()=>{ audio.pause()
 // Manual tools
 function applyManual(type){ alert('Manual tool: '+type); }
 
-// Video effects per layer
-function applyTemplate(name){ alert('Apply effect: '+name); }
+// Video effects
+function applyTemplate(name){ alert('Effect: '+name); }
 
 // Download
 document.getElementById('downloadManualBtn').addEventListener('click', ()=>{
@@ -200,10 +194,10 @@ document.getElementById('downloadVideoBtn').addEventListener('click', ()=>{
 });
 
 // Undo / Redo
-function saveState(){ undoStack.push(layerContainer.innerHTML); if(undoStack.length>20) undoStack.shift(); }
+function saveState(){ undoStack.push(layerContainer.innerHTML); if(undoStack.length>50) undoStack.shift(); }
 function undoLayer(){ if(undoStack.length>0){ redoStack.push(layerContainer.innerHTML); layerContainer.innerHTML=undoStack.pop(); } }
-function redoLayer(){ if(redoStack.length>0){ undoStack.push(layerContainer.innerHTML); layerContainer.innerHTML=redoStack.pop(); } }
+function redoLayer(){ if(redoStack.length>0){ undoStack.push(layerContainer.innerHTML); layerContainer.innerHTML=redoStack.pop(); }
+}
 </script>
-
 </body>
 </html>
