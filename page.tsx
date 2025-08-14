@@ -2,11 +2,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Play, Pause, Upload, Scissors, Music, Type, Settings } from "lucide-react";
 
 export default function EditorPage() {
-  const [isPlaying, setIsPlaying] = useState(false);
   const [videoFile, setVideoFile] = useState<string | null>(null);
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -22,9 +19,12 @@ export default function EditorPage() {
       {/* Top Bar */}
       <div className="flex items-center justify-between p-3 border-b border-gray-700">
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => document.getElementById("fileInput")?.click()}>
-            <Upload className="w-4 h-4 mr-1" /> Import
-          </Button>
+          <button
+            className="bg-gray-700 px-3 py-1 rounded"
+            onClick={() => document.getElementById("fileInput")?.click()}
+          >
+            Upload
+          </button>
           <input
             id="fileInput"
             type="file"
@@ -34,54 +34,29 @@ export default function EditorPage() {
           />
         </div>
         <div className="text-lg font-bold">🎬 DSRT Web Editor</div>
-        <Button variant="secondary">Export</Button>
+        <button className="bg-gray-700 px-3 py-1 rounded">Export</button>
       </div>
 
       {/* Main Area */}
       <div className="flex flex-1">
         {/* Tool Panel */}
         <div className="w-16 bg-gray-800 flex flex-col items-center py-4 gap-6 border-r border-gray-700">
-          <Scissors className="w-6 h-6 cursor-pointer hover:text-green-400" />
-          <Music className="w-6 h-6 cursor-pointer hover:text-green-400" />
-          <Type className="w-6 h-6 cursor-pointer hover:text-green-400" />
-          <Settings className="w-6 h-6 cursor-pointer hover:text-green-400" />
+          ✂️ 🎵 🅰️ ⚙️
         </div>
 
         {/* Preview */}
-        <div className="flex-1 flex flex-col items-center justify-center bg-black relative">
+        <div className="flex-1 flex items-center justify-center bg-black">
           {videoFile ? (
-            <video
-              src={videoFile}
-              className="max-h-full max-w-full"
-              controls={false}
-              autoPlay={false}
-              muted
-            />
+            <video src={videoFile} className="max-h-full max-w-full" controls />
           ) : (
             <div className="text-gray-500">Import video to start editing</div>
           )}
-
-          {/* Playback Controls */}
-          <div className="absolute bottom-4 flex gap-3">
-            <Button
-              variant="secondary"
-              onClick={() => setIsPlaying((prev) => !prev)}
-            >
-              {isPlaying ? (
-                <Pause className="w-5 h-5" />
-              ) : (
-                <Play className="w-5 h-5" />
-              )}
-            </Button>
-          </div>
         </div>
 
         {/* Property Panel */}
         <div className="w-64 bg-gray-800 border-l border-gray-700 p-4">
           <h2 className="font-semibold mb-2">Properties</h2>
-          <p className="text-sm text-gray-400">
-            Select a clip to see its settings here.
-          </p>
+          <p className="text-sm text-gray-400">Select a clip to see settings</p>
         </div>
       </div>
 
