@@ -1,148 +1,94 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSRT Studio Final Interactive</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  body { margin:0; font-family:'Segoe UI', sans-serif; background:#0e0e0e; color:white; }
-  .canvas { background:#1f1f1f; width:100%; height:60vh; display:flex; align-items:center; justify-content:center; border:2px solid #3b82f6; position:relative; overflow:hidden; }
-  .back-bar { background:#111827; padding:0.5rem 1rem; border-bottom:1px solid #3b82f6; display:flex; align-items:center; }
-  .bar { background:#1f2937; cursor:pointer; padding:0.5rem 1rem; display:flex; align-items:center; justify-content:space-between; border-top:1px solid #3b82f6; }
-  .panel { background:#111827; max-height:0; overflow:hidden; transition:max-height 0.3s ease; }
-  .panel.active { max-height:500px; }
-  .panel-content { padding:0.5rem 1rem; display:flex; flex-wrap:wrap; gap:0.5rem; }
-  .tool { background:#374151; padding:0.5rem 1rem; border-radius:0.375rem; cursor:pointer; flex:1 1 120px; text-align:center; }
-  .button { background:#3b82f6; padding:0.5rem 1rem; border-radius:0.375rem; cursor:pointer; }
-  input[type=range] { width:100%; }
-</style>
-</head>
-<body>
+// app/editor/page.tsx
+"use client";
 
-<!-- Back Bar -->
-<div class="back-bar">
-  <button onclick="alert('Kembali ke Landing Page')" class="button">Back</button>
-</div>
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Play, Pause, Upload, Scissors, Music, Type, Settings } from "lucide-react";
 
-<!-- Canvas -->
-<div class="canvas" id="canvas">
-  <span>Canvas Preview Area</span>
-</div>
+export default function EditorPage() {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [videoFile, setVideoFile] = useState<string | null>(null);
 
-<!-- Video Bar -->
-<div class="bar" onclick="togglePanel('videoPanel')">
-  <span>Video ▼</span>
-</div>
-<div class="panel" id="videoPanel">
-  <div class="panel-content">
-    <div class="tool" onclick="trimVideo()">Trim</div>
-    <div class="tool" onclick="overlayVideo()">Overlay</div>
-    <div class="tool" onclick="beatSync()">Beat Sync</div>
-    <div class="tool" onclick="applyVideoFilter()">Filter</div>
-    <div class="tool" onclick="showTimeline()">Timeline</div>
-    <div class="tool" onclick="manageLayer()">Layer</div>
-    <div class="tool" onclick="applyPreset()">Preset</div>
-  </div>
-</div>
-
-<!-- Manual Tools Bar -->
-<div class="bar" onclick="togglePanel('manualPanel')">
-  <span>Manual Tools ▼</span>
-</div>
-<div class="panel" id="manualPanel">
-  <div class="panel-content">
-    <div class="tool">Color <input type="range" min="0" max="100" value="50" onchange="applyEffect('color', this.value)"></div>
-    <div class="tool">Sharpness <input type="range" min="0" max="100" value="50" onchange="applyEffect('sharpness', this.value)"></div>
-    <div class="tool">Noise <input type="range" min="0" max="100" value="50" onchange="applyEffect('noise', this.value)"></div>
-    <div class="tool">Texture <input type="range" min="0" max="100" value="50" onchange="applyEffect('texture', this.value)"></div>
-    <div class="tool" onclick="undo()">Undo</div>
-    <div class="tool" onclick="redo()">Redo</div>
-  </div>
-</div>
-
-<!-- Upload / Download / Audio -->
-<div class="bar">
-  <label class="tool">
-    Upload Image/Video/Audio
-    <input type="file" id="uploadFile" style="display:none" onchange="uploadFile(event)">
-  </label>
-  <button class="tool" onclick="downloadCanvas()">Download</button>
-  <button class="tool" onclick="playAudio()">Play Audio</button>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script>
-let historyStack = [], redoStack = [];
-
-function togglePanel(id){
-  const panels = ['videoPanel','manualPanel'];
-  panels.forEach(p=>{
-    const el=document.getElementById(p);
-    if(p===id){ el.classList.toggle('active'); }
-    else{ el.classList.remove('active'); }
-  });
-}
-
-function applyEffect(type, value){
-  const canvas = document.getElementById('canvas');
-  canvas.style.filter = `brightness(${type==='color'?value+'%':100}) blur(${type==='texture'?value/10+'px':0})`;
-  historyStack.push({type,value});
-}
-
-function undo(){
-  if(historyStack.length){
-    const last = historyStack.pop();
-    redoStack.push(last);
-    document.getElementById('canvas').style.filter = '';
-  }
-}
-
-function redo(){
-  if(redoStack.length){
-    const last = redoStack.pop();
-    applyEffect(last.type,last.value);
-  }
-}
-
-function uploadFile(event){
-  const file = event.target.files[0];
-  if(file){
-    const canvas = document.getElementById('canvas');
-    if(file.type.startsWith('image')){
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(file);
-      img.style.maxWidth='100%';
-      img.style.maxHeight='100%';
-      canvas.innerHTML=''; canvas.appendChild(img);
-    } else if(file.type.startsWith('video')){
-      const video = document.createElement('video');
-      video.src = URL.createObjectURL(file);
-      video.controls=true; video.autoplay=true;
-      video.style.maxWidth='100%';
-      video.style.maxHeight='100%';
-      canvas.innerHTML=''; canvas.appendChild(video);
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setVideoFile(url);
     }
   }
-}
 
-function downloadCanvas(){
-  html2canvas(document.getElementById('canvas')).then(canvas=>{
-    const link=document.createElement('a');
-    link.download='dsrt_edit.png';
-    link.href=canvas.toDataURL();
-    link.click();
-  });
-}
+  return (
+    <div className="flex flex-col h-screen bg-gray-900 text-white">
+      {/* Top Bar */}
+      <div className="flex items-center justify-between p-3 border-b border-gray-700">
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => document.getElementById("fileInput")?.click()}>
+            <Upload className="w-4 h-4 mr-1" /> Import
+          </Button>
+          <input
+            id="fileInput"
+            type="file"
+            accept="video/*"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+        </div>
+        <div className="text-lg font-bold">🎬 DSRT Web Editor</div>
+        <Button variant="secondary">Export</Button>
+      </div>
 
-function playAudio(){ alert('Audio / Beat Sync Play Placeholder'); }
-function trimVideo(){ alert('Trim Video Active'); }
-function overlayVideo(){ alert('Overlay Video Active'); }
-function beatSync(){ alert('Beat Sync Active'); }
-function applyVideoFilter(){ alert('Filter Video Active'); }
-function showTimeline(){ alert('Timeline Active'); }
-function manageLayer(){ alert('Layer Management Active'); }
-function applyPreset(){ alert('Template Preset Active'); }
-</script>
-</body>
-</html>
+      {/* Main Area */}
+      <div className="flex flex-1">
+        {/* Tool Panel */}
+        <div className="w-16 bg-gray-800 flex flex-col items-center py-4 gap-6 border-r border-gray-700">
+          <Scissors className="w-6 h-6 cursor-pointer hover:text-green-400" />
+          <Music className="w-6 h-6 cursor-pointer hover:text-green-400" />
+          <Type className="w-6 h-6 cursor-pointer hover:text-green-400" />
+          <Settings className="w-6 h-6 cursor-pointer hover:text-green-400" />
+        </div>
+
+        {/* Preview */}
+        <div className="flex-1 flex flex-col items-center justify-center bg-black relative">
+          {videoFile ? (
+            <video
+              src={videoFile}
+              className="max-h-full max-w-full"
+              controls={false}
+              autoPlay={false}
+              muted
+            />
+          ) : (
+            <div className="text-gray-500">Import video to start editing</div>
+          )}
+
+          {/* Playback Controls */}
+          <div className="absolute bottom-4 flex gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => setIsPlaying((prev) => !prev)}
+            >
+              {isPlaying ? (
+                <Pause className="w-5 h-5" />
+              ) : (
+                <Play className="w-5 h-5" />
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Property Panel */}
+        <div className="w-64 bg-gray-800 border-l border-gray-700 p-4">
+          <h2 className="font-semibold mb-2">Properties</h2>
+          <p className="text-sm text-gray-400">
+            Select a clip to see its settings here.
+          </p>
+        </div>
+      </div>
+
+      {/* Timeline */}
+      <div className="h-28 bg-gray-800 border-t border-gray-700 p-3">
+        <div className="text-gray-400">Timeline Area</div>
+      </div>
+    </div>
+  );
+}
