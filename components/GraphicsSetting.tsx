@@ -1,18 +1,19 @@
-export default function GraphicsSettings({
-  value,
-  onChange,
-}: {
-  value: 'high' | 'medium' | 'low';
-  onChange: (val: 'high' | 'medium' | 'low') => void;
-}) {
+export default function GameCanvas2D({ graphics }: { graphics: string }) {
   return (
-    <div style={{ position: 'absolute', top: 20, right: 20 }}>
-      <label>Graphics: </label>
-      <select value={value} onChange={(e) => onChange(e.target.value as any)}>
-        <option value="high">High</option>
-        <option value="medium">Medium</option>
-        <option value="low">Low</option>
-      </select>
+    <div style={{ textAlign: 'center' }}>
+      <h2>Game Canvas 2D</h2>
+      <p>Graphics: {graphics}</p>
+      <div
+        style={{
+          width: 300,
+          height: 200,
+          margin: '20px auto',
+          background: '#eee',
+          border: '1px solid #ccc',
+        }}
+      >
+        [Game area]
+      </div>
     </div>
   );
 }
