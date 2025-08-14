@@ -3,267 +3,162 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSRT Studio Ultimate</title>
+<title>DSRT Studio Ultimate Pro Full Web</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  body { background: linear-gradient(180deg,#0f0f0f,#1a1a1a); font-family:sans-serif; }
-  .card { transition: transform 0.2s, box-shadow 0.2s; }
-  .card:hover { transform: translateY(-2px); box-shadow:0 8px 20px rgba(59,130,246,0.5); }
-  canvas { background:#111; display:block; margin:0 auto; max-width:100%; border-radius:12px; }
-  .premium { color:#facc15; font-weight:bold; }
-  .slider { width:100%; }
+body { background:#0f0f0f; color:white; font-family:sans-serif; margin:0; transition:background 0.5s;}
+header { transition: all 0.4s; }
+button,input,select { transition: all 0.3s;}
+button:hover,input:hover,select:hover { transform: scale(1.03);}
+canvas { background:#111; display:block; margin:0 auto; max-width:100%; border-radius:12px; transition: all 0.3s;}
+.card { transition: transform 0.3s, box-shadow 0.3s; cursor:pointer;}
+.card:hover { transform: scale(1.03); box-shadow:0 12px 25px rgba(59,130,246,0.5);}
+.premium { color:#facc15; font-weight:bold; animation: pulse 2s infinite;}
+@keyframes pulse {0%,100%{ transform:scale(1); } 50%{ transform:scale(1.05); }}
+.fade { transition: opacity 0.4s; }
+.slide { transition: transform 0.4s; }
+.timeline { height:50px; background:#222; border-radius:8px; overflow:hidden; position:relative; margin-top:10px; }
+.marker { position:absolute; width:2px; height:100%; background:red; }
+.lyric { position:absolute; color:#00f; font-size:24px; font-weight:bold; text-shadow:1px 1px 5px black;}
 </style>
 </head>
-<body class="text-white">
+<body>
 
 <header class="bg-gray-800 p-4 flex justify-between items-center shadow-md">
-  <h1 class="text-2xl font-bold">DSRT Studio Ultimate</h1>
+  <h1 class="text-2xl font-bold">DSRT Studio Ultimate Pro</h1>
   <nav class="flex space-x-4">
     <button onclick="showPage('landing')" class="px-3 py-2 bg-blue-600 rounded hover:bg-blue-700">Landing Page</button>
     <button onclick="showPage('dashboard')" class="px-3 py-2 bg-gray-700 rounded hover:bg-gray-600">Dashboard</button>
   </nav>
 </header>
 
-<!-- Landing -->
-<section id="landing" class="p-6">
+<section id="landing" class="p-6 fade">
   <div class="text-center mb-10">
-    <h2 class="text-4xl font-bold mb-4">Selamat Datang di DSRT Studio Ultimate</h2>
-    <p class="text-gray-300 mb-4">Perbaiki & tingkatkan kualitas foto/gambar dengan teknologi Manual & AI.</p>
+    <h2 class="text-4xl font-bold mb-4">Selamat Datang di DSRT Studio</h2>
+    <p class="text-gray-300 mb-4">Digital Smart Remaster Technology – Mini CapCut Web Edition</p>
     <button onclick="showPage('dashboard')" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded font-semibold">Mulai Sekarang</button>
   </div>
 </section>
 
-<!-- Dashboard -->
-<section id="dashboard" class="p-6 hidden space-y-6">
-
-  <!-- Upload & Download -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-    <input id="uploadInput" type="file" accept="image/*" class="px-4 py-2 rounded bg-gray-700 w-full md:w-64">
-    <select id="resolutionSelect" class="px-4 py-2 rounded bg-gray-700 text-white">
-      <option value="0.25">Kecil (25%)</option>
-      <option value="0.5">Sedang (50%)</option>
-      <option value="1" selected>Asli (100%)</option>
-      <option value="2">Besar (200%)</option>
+<section id="dashboard" class="p-6 hidden fade">
+  <div class="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0">
+    <input id="uploadImage" type="file" accept="image/*" class="px-4 py-2 rounded bg-gray-700">
+    <input id="uploadAudio" type="file" accept="audio/*" class="px-4 py-2 rounded bg-gray-700">
+    <select id="templateSelect" class="px-4 py-2 rounded bg-gray-700">
+      <option value="none">Pilih Template</option>
+      <option value="jedag">Jedag-Jedug</option>
+      <option value="lyric">Lyric</option>
+      <option value="glitch">Glitch</option>
+      <option value="particle">Particle</option>
+      <option value="shake">Shake</option>
+      <option value="glow">Glow</option>
     </select>
-    <button id="downloadBtn" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded">Download</button>
-    <button id="resetBtn" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Reset</button>
-    <button id="undoBtn" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded">Undo</button>
-    <button id="redoBtn" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded">Redo</button>
+    <button id="playBtn" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded">Play</button>
+    <button id="pauseBtn" class="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded">Pause</button>
+    <button id="stopBtn" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Stop</button>
+    <button id="downloadBtn" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded">Download Video</button>
   </div>
 
-  <!-- Canvas Preview -->
-  <canvas id="canvas" width="600" height="400"></canvas>
-
-  <!-- Tabs -->
-  <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4 space-y-2 md:space-y-0">
-    <div class="flex space-x-4">
-      <button id="manualTab" class="bg-blue-600 px-4 py-2 rounded flex items-center space-x-2"><span>DSRT Manual</span></button>
-      <button id="aiTab" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded flex items-center space-x-2"><span>DSRT AI</span></button>
-    </div>
-    <input id="searchInput" type="text" placeholder="Cari fitur..." class="px-4 py-2 rounded bg-gray-700 placeholder-gray-400 text-white w-full md:w-64">
-  </div>
-
-  <!-- Manual Cards -->
-  <div id="manualContent" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div class="card bg-gray-800 p-4 rounded premium">
-      <h3 class="font-bold text-lg">Brightness 💎</h3>
-      <input type="range" min="-100" max="100" value="0" class="slider brightnessSlider">
-    </div>
-    <div class="card bg-gray-800 p-4 rounded premium">
-      <h3 class="font-bold text-lg">Saturation 💎</h3>
-      <input type="range" min="-100" max="100" value="0" class="slider saturationSlider">
-    </div>
-    <div class="card bg-gray-800 p-4 rounded premium">
-      <h3 class="font-bold text-lg">Hue 💎</h3>
-      <input type="range" min="-180" max="180" value="0" class="slider hueSlider">
-    </div>
-    <div class="card bg-gray-800 p-4 rounded premium">
-      <h3 class="font-bold text-lg">Sharpness 💎</h3>
-      <input type="range" min="0" max="10" value="0" class="slider sharpnessSlider">
-    </div>
-    <div class="card bg-gray-800 p-4 rounded premium">
-      <h3 class="font-bold text-lg">Noise Reduction 💎</h3>
-      <input type="range" min="0" max="10" value="0" class="slider noiseSlider">
-    </div>
-  </div>
-
-  <!-- AI Cards -->
-  <div id="aiContent" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
-    <div class="card bg-gray-800 p-4 rounded premium">
-      <h3 class="font-bold text-lg">Auto Enhance 💎</h3>
-      <button id="autoEnhanceBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded mt-2 w-full">Apply</button>
-    </div>
-    <div class="card bg-gray-800 p-4 rounded premium">
-      <h3 class="font-bold text-lg">AI Colorize 💎</h3>
-      <button id="colorizeBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded mt-2 w-full">Apply</button>
-    </div>
-    <div class="card bg-gray-800 p-4 rounded premium">
-      <h3 class="font-bold text-lg">AI Smart Sharpen 💎</h3>
-      <button id="smartSharpenBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded mt-2 w-full">Apply</button>
-    </div>
-  </div>
-
+  <canvas id="canvas" width="600" height="400" class="rounded shadow-lg mt-4"></canvas>
+  <div class="timeline mt-4" id="timeline"></div>
+  <div id="lyricContainer"></div>
 </section>
 
 <script>
-// Page Tabs
+// Page switch
 function showPage(pageId){
   document.getElementById('landing').classList.add('hidden');
   document.getElementById('dashboard').classList.add('hidden');
   document.getElementById(pageId).classList.remove('hidden');
 }
 
-// Tabs
-const manualTab=document.getElementById('manualTab');
-const aiTab=document.getElementById('aiTab');
-const manualContent=document.getElementById('manualContent');
-const aiContent=document.getElementById('aiContent');
-manualTab.addEventListener('click',()=>{
-  manualContent.classList.remove('hidden'); aiContent.classList.add('hidden');
-  manualTab.classList.add('bg-blue-600'); manualTab.classList.remove('bg-gray-700');
-  aiTab.classList.remove('bg-blue-600'); aiTab.classList.add('bg-gray-700');
-});
-aiTab.addEventListener('click',()=>{
-  aiContent.classList.remove('hidden'); manualContent.classList.add('hidden');
-  aiTab.classList.add('bg-blue-600'); aiTab.classList.remove('bg-gray-700');
-  manualTab.classList.remove('bg-blue-600'); manualTab.classList.add('bg-gray-700');
-});
-
-// Canvas & Image
+// Canvas multi-layer
 const canvas=document.getElementById('canvas');
 const ctx=canvas.getContext('2d');
-const uploadInput=document.getElementById('uploadInput');
-const downloadBtn=document.getElementById('downloadBtn');
-const resetBtn=document.getElementById('resetBtn');
-const resolutionSelect=document.getElementById('resolutionSelect');
-const undoBtn=document.getElementById('undoBtn');
-const redoBtn=document.getElementById('redoBtn');
-
-let img=new Image();
-let originalData=null;
-let history=[]; let historyStep=-1;
-
-uploadInput.addEventListener('change',e=>{
-  const file=e.target.files[0];
-  if(!file) return;
+let img=new Image(); let originalData=null;
+document.getElementById('uploadImage').addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file) return;
   const reader=new FileReader();
   reader.onload=function(ev){ img.src=ev.target.result; }
   reader.readAsDataURL(file);
 });
-
 img.onload=function(){
-  canvas.width=img.width;
-  canvas.height=img.height;
+  canvas.width=img.width; canvas.height=img.height;
   ctx.drawImage(img,0,0);
   originalData=ctx.getImageData(0,0,canvas.width,canvas.height);
-  saveHistory();
 }
-
-// Save History
-function saveHistory(){
-  if(historyStep<history.length-1) history=history.slice(0,historyStep+1);
-  history.push(ctx.getImageData(0,0,canvas.width,canvas.height));
-  historyStep++;
-}
-
-// Undo/Redo
-undoBtn.addEventListener('click',()=>{
-  if(historyStep>0){ historyStep--; ctx.putImageData(history[historyStep],0,0); }
-});
-redoBtn.addEventListener('click',()=>{
-  if(historyStep<history.length-1){ historyStep++; ctx.putImageData(history[historyStep],0,0); }
-});
 
 // Filters
-function applyFilters(){
+function applyFilters(brightness=0,saturation=0,hue=0){
   if(!originalData) return;
   const data=new ImageData(new Uint8ClampedArray(originalData.data),originalData.width,originalData.height);
-  const brightness=parseInt(document.querySelector('.brightnessSlider').value);
-  const saturation=parseInt(document.querySelector('.saturationSlider').value);
-  const hue=parseInt(document.querySelector('.hueSlider').value);
-  const sharp=parseInt(document.querySelector('.sharpnessSlider').value);
-  const noise=parseInt(document.querySelector('.noiseSlider').value);
-
   for(let i=0;i<data.data.length;i+=4){
     let r=data.data[i],g=data.data[i+1],b=data.data[i+2];
-
-    // Brightness
-    r+=brightness; g+=brightness; b+=brightness;
-
-    // Saturation
-    let avg=(r+g+b)/3;
-    r=avg+(r-avg)*(1+saturation/100);
-    g=avg+(g-avg)*(1+saturation/100);
-    b=avg+(b-avg)*(1+saturation/100);
-
-    // Hue rotation (simplified)
-    let angle=hue*Math.PI/180;
-    let cosA=Math.cos(angle), sinA=Math.sin(angle);
-    let r2=r*cosA-b*sinA;
-    let b2=r*sinA+b*cosA;
-    r=r2; b=b2;
-
-    // Sharpness (simple edge enhance)
-    r+=sharp; g+=sharp; b+=sharp;
-
-    // Noise Reduction (simple blur)
-    r=r*(1-noise/10)+avg*(noise/10);
-    g=g*(1-noise/10)+avg*(noise/10);
-    b=b*(1-noise/10)+avg*(noise/10);
-
-    // Clamp
+    let avg=(r+g+b)/3; r+=brightness; g+=brightness; b+=brightness;
+    r=avg+(r-avg)*(1+saturation/100); g=avg+(g-avg)*(1+saturation/100); b=avg+(b-avg)*(1+saturation/100);
+    let angle=hue*Math.PI/180; let cosA=Math.cos(angle), sinA=Math.sin(angle);
+    let r2=r*cosA-b*sinA; let b2=r*sinA+b; r=r2; b=b2;
     data.data[i]=Math.min(255,Math.max(0,r));
     data.data[i+1]=Math.min(255,Math.max(0,g));
     data.data[i+2]=Math.min(255,Math.max(0,b));
   }
-
   ctx.putImageData(data,0,0);
-  saveHistory();
 }
 
-// Event Sliders
-document.querySelectorAll('.slider').forEach(slider=>{
-  slider.addEventListener('input',applyFilters);
+// Audio + Templates
+let audio=new Audio();
+document.getElementById('uploadAudio').addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file) return;
+  audio.src=URL.createObjectURL(file);
 });
 
-// Reset
-resetBtn.addEventListener('click',()=>{
-  if(originalData) ctx.putImageData(originalData,0,0);
-  document.querySelectorAll('.slider').forEach(s=>s.value=0);
-  saveHistory();
-});
+const lyricContainer=document.getElementById('lyricContainer');
+let lyrics=[{time:1,text:"DSRT Studio"},{time:3,text:"Ultimate Pro"},{time:5,text:"CapCut Mini"}];
+let beatInterval=null;
 
-// AI Buttons
-document.getElementById('autoEnhanceBtn').addEventListener('click',()=>{
-  document.querySelector('.brightnessSlider').value=20;
-  document.querySelector('.saturationSlider').value=30;
-  document.querySelector('.hueSlider').value=0;
-  applyFilters();
-});
-document.getElementById('colorizeBtn').addEventListener('click',()=>{
-  document.querySelector('.brightnessSlider').value=0;
-  document.querySelector('.saturationSlider').value=40;
-  document.querySelector('.hueSlider').value=15;
-  applyFilters();
-});
-document.getElementById('smartSharpenBtn').addEventListener('click',()=>{
-  document.querySelector('.sharpnessSlider').value=5;
-  applyFilters();
-});
+// Effects
+function startEffects(){
+  const template=document.getElementById('templateSelect').value;
+  if(!audio.paused){
+    beatInterval=setInterval(()=>{
+      const currentTime=Math.floor(audio.currentTime);
+      if(template==='jedag'){ applyFilters(Math.random()*50-25,Math.random()*40-20,Math.random()*40-20); }
+      if(template==='lyric'){ lyricContainer.innerHTML=''; lyrics.forEach(l=>{ if(currentTime>=l.time && currentTime<l.time+2){
+        const div=document.createElement('div'); div.className='lyric';
+        div.style.top=(50+Math.random()*100)+'px'; div.style.left=(50+Math.random()*400)+'px';
+        div.innerText=l.text; lyricContainer.appendChild(div);
+      }});}
+      if(template==='glitch'){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,Math.random()*10-5,Math.random()*10-5); }
+      if(template==='shake'){ canvas.style.transform='translate('+((Math.random()*10)-5)+'px,'+((Math.random()*10)-5)+'px)'; }
+      if(template==='glow'){ canvas.style.boxShadow='0 0 '+(Math.random()*20)+'px #0ff'; }
+      // Timeline marker
+      const timeline=document.getElementById('timeline');
+      const marker=document.createElement('div'); marker.className='marker';
+      const pos=(audio.currentTime/audio.duration)*100; marker.style.left=pos+'%'; timeline.appendChild(marker);
+    },100);
+  }
+}
+function stopEffects(){ clearInterval(beatInterval); lyricContainer.innerHTML=''; canvas.style.transform=''; canvas.style.boxShadow='';}
 
-// Download
-downloadBtn.addEventListener('click',()=>{
-  if(!canvas) return;
-  const scale=parseFloat(resolutionSelect.value);
-  const tempCanvas=document.createElement('canvas');
-  tempCanvas.width=canvas.width*scale;
-  tempCanvas.height=canvas.height*scale;
-  const tempCtx=tempCanvas.getContext('2d');
-  tempCtx.drawImage(canvas,0,0,tempCanvas.width,tempCanvas.height);
-  const link=document.createElement('a');
-  link.download='dsrt_image.png';
-  link.href=tempCanvas.toDataURL('image/png');
-  link.click();
+// Buttons
+document.getElementById('playBtn').addEventListener('click',()=>{ audio.play(); startEffects(); });
+document.getElementById('pauseBtn').addEventListener('click',()=>{ audio.pause(); stopEffects(); });
+document.getElementById('stopBtn').addEventListener('click',()=>{ audio.pause(); audio.currentTime=0; stopEffects(); });
+
+// Export Video WebM
+document.getElementById('downloadBtn').addEventListener('click',()=>{
+  const stream=canvas.captureStream(30);
+  const mediaRecorder=new MediaRecorder(stream);
+  let chunks=[];
+  mediaRecorder.ondataavailable=e=>chunks.push(e.data);
+  mediaRecorder.onstop=e=>{
+    const blob=new Blob(chunks,{type:'video/webm'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='dsrt_video.webm'; a.click();
+    URL.revokeObjectURL(url);
+  };
+  mediaRecorder.start();
+  setTimeout(()=>{ mediaRecorder.stop(); },5000); // record 5 detik
 });
 </script>
 </body>
